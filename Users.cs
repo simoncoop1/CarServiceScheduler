@@ -23,13 +23,6 @@ public class Users
             usersInstance = new Users();
         }
         return usersInstance;
-
-        //List<int> ok = new List<int>();        
-        //ok.Add(8);
-        //ok.Add(7);
-
-        //var t = ok.First(k => k < 10);
-
     }
 
     public void SerializeComplex(){
@@ -41,8 +34,7 @@ public class Users
         using (FileStream file = new FileStream(Constants.xmlFname, FileMode.Create, FileAccess.Write))
             m.WriteTo(file);
 
-        //Textwriter t = ne StreamWriter(Constants.xmlFname);
-         
+        //Textwriter t = ne StreamWriter(Constants.xmlFname);   
     }
 
     public void DeSerializeComplex(){
@@ -119,7 +111,6 @@ public class Car{
     }
 
 }
-
 
 public class Manufacturer{
 
@@ -201,8 +192,6 @@ public static class ManufacturerLibrary{
     }
 
 }
-
-
 
 public enum Fuel { Diesel, Petrol};
 
@@ -309,9 +298,6 @@ public class Mileage{
 
 }
 
-
-
-
 public enum Repeat { Single, Repeat};
 
 //[XmlRoot(Namespace = Constants.servicetasknamespace)]
@@ -343,9 +329,62 @@ public abstract class ServiceTask{
 
     //for a given mileagerecord say when service task is due
     //return null if the service task is only base on mileage, or if the period is once
-    public abstract DateTime? GetWhenDue(Mileage m);
+    public DateTime? GetWhenDue(Mileage m)
+    {
 
-    public abstract DateTime GetWhenDueEstimate(List<Mileage> ms);
+        //single use service task
+        if(repeat == Repeat.Single && this.servictaskrecord.Count > 1)
+            return null;
+
+        ServiceTaskRecord r;
+
+        try{
+            r = GetMostRecent();
+        }
+        catch(InvalidOperationException ie){
+            return null;
+        }
+        
+
+        //the service task has a mileage and time interval
+        //if((mileageInterval != ServiceMileageInterval.na) && 
+        //    (timeinterval != ServiceTimeInterval.na)){
+
+
+        //the service task has a mileage interval only
+
+        //the service task has time interval only
+
+        //the service task has no mileage interval or time interval
+
+       //the last recorded mileage is greater than the service task plus its mileage
+       if(m.mileage>= (r.mileage+(int)mileageInterval)){
+
+                //Console.WriteLine(r.mileage+(int)mileageInterval);
+                //Console.WriteLine(m.mileage);
+                return m.date;
+       }
+
+        //the service task does not have a time interval
+        if(timeinterval == ServiceTimeInterval.na){
+            return null;
+        }
+
+
+        int i = (int)timeinterval;
+
+        TimeSpan ts = new TimeSpan((int)(i*Constants.daysinyear),0,0,0);
+
+        return r.date + ts;
+
+    }
+
+    public DateTime GetWhenDueEstimate(List<Mileage> ms)
+    {
+        ServiceTaskRecord r = GetMostRecent();
+
+        return Mileage.GetEstimatedDate(r.mileage+(int)mileageInterval,ms);
+    }
 
 }
 
@@ -370,40 +409,6 @@ public class OilChange:ServiceTask{
         timeinterval = ServiceTimeInterval.year1 ;
 
     }
-
-    public override DateTime? GetWhenDue(Mileage m)
-    {
-
-        ServiceTaskRecord r = GetMostRecent();
-
-        //if(m.mileage>= r.mileage){
-        //    Console.WriteLine("guyguygyugu");
-        //    return m.date;
-        //}
-
-        if(timeinterval == ServiceTimeInterval.na){
-            return null;
-        }
-
-
-        if(repeat == Repeat.Repeat){
-            int i = (int)timeinterval;
-
-            TimeSpan ts = new TimeSpan((int)(i*Constants.daysinyear),0,0,0);
-
-            return r.date + ts;
-
-        }
-
-        return null;
-    }
-
-    public override DateTime GetWhenDueEstimate(List<Mileage> ms)
-    {
-        ServiceTaskRecord r = GetMostRecent();
-
-        return Mileage.GetEstimatedDate(r.mileage+(int)mileageInterval,ms);
-    }
 }
 
 public class OilFilterChange:ServiceTask{
@@ -418,35 +423,15 @@ public class OilFilterChange:ServiceTask{
         
 
     }
-
-    public override DateTime? GetWhenDue(Mileage m)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override DateTime GetWhenDueEstimate(List<Mileage> ms)
-    {
-        throw new NotImplementedException();
-    }
 }
 
 public class FuelFilterChange:ServiceTask{
 
     public FuelFilterChange(){
-        name = "Oil Filter Change";
+        name = "Fuel Filter Change";
         description = "change the fuel filter";
         repeat = Repeat.Repeat;
         mileageInterval = ServiceMileageInterval.num20000;
-    }
-
-    public override DateTime? GetWhenDue(Mileage m)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override DateTime GetWhenDueEstimate(List<Mileage> ms)
-    {
-        throw new NotImplementedException();
     }
 }
 
@@ -459,16 +444,6 @@ public class DustFilter:ServiceTask{
         mileageInterval = ServiceMileageInterval.num40000;
 
     }
-
-    public override DateTime? GetWhenDue(Mileage m)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override DateTime GetWhenDueEstimate(List<Mileage> ms)
-    {
-        throw new NotImplementedException();
-    }
 }
 
 public class PollenFilter:ServiceTask{
@@ -479,16 +454,6 @@ public class PollenFilter:ServiceTask{
         repeat = Repeat.Repeat;
         mileageInterval = ServiceMileageInterval.num40000;
 
-    }
-
-    public override DateTime? GetWhenDue(Mileage m)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override DateTime GetWhenDueEstimate(List<Mileage> ms)
-    {
-        throw new NotImplementedException();
     }
 }
 
@@ -502,15 +467,6 @@ public class ToothedBelt:ServiceTask{
 
     }
 
-    public override DateTime? GetWhenDue(Mileage m)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override DateTime GetWhenDueEstimate(List<Mileage> ms)
-    {
-        throw new NotImplementedException();
-    }
 }
 
 public enum ServiceMileageInterval {na=0, num10000=10000,num20000=20000,num40000=40000,num80000=8000};

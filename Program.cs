@@ -343,7 +343,7 @@ namespace CarServiceScheduler
 
             Console.WriteLine("-----------------------------");
             foreach(Mileage m in Session.Instance().car.mileagerecording){
-                Console.WriteLine(m.date.ToString() + "  " + m.mileage);
+                Console.WriteLine(m.date.ToShortDateString() + "  " + m.mileage);
             }
             Console.WriteLine("-----------------------------");
 
@@ -477,14 +477,23 @@ namespace CarServiceScheduler
             for(int i = 0;i< car.servicetasks.Count;i++){
                 Console.WriteLine((i+1).ToString() + " " + car.servicetasks[i].name);
 
+                Console.WriteLine("    Last Completion:" + car.servicetasks[i].GetMostRecent().date.ToShortDateString());
+
                 Mileage m = car.MostRecentMileage();
 
                 DateTime? dtn = car.servicetasks[i].GetWhenDue(m);
-                DateTime dt = dtn.Value;
 
+                String md;
+
+                if(dtn == null)
+                    md = "----------";
+                else{
+                     md = dtn.Value.ToShortDateString();
+                }
+                                
                 DateTime dte = car.servicetasks[i].GetWhenDueEstimate(car.mileagerecording);
 
-                 Console.WriteLine("    " + "Due: " + dt.ToShortDateString() + 
+                 Console.WriteLine("    " + "Due: " + md + 
                     "  Due(Mileage Est): " + dte.ToShortDateString());
 
             }
